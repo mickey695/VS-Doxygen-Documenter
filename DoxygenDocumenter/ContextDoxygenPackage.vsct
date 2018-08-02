@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <Extern href="stdidcmd.h"/>
+
+  <Extern href="vsshlids.h"/>
+
+  <Commands package="guidContextDoxygenPackage">
+    <Groups>
+      <Group guid="guidContextDoxygenPackageCmdSet" id="ContextMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidContextDoxygenPackageCmdSet" id="ContextDoxygenId" priority="0x0100" type="Button">
+        <Parent guid="guidContextDoxygenPackageCmdSet" id="ContextMenuGroup" />
+        <Strings>
+          <ButtonText>Create documentation template</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+
+  <Symbols>
+    
+    <GuidSymbol name="guidContextDoxygenPackage" value="{1d639429-ac13-43a7-97bb-e3c154f75a3a}" />
+
+    <GuidSymbol name="guidContextDoxygenPackageCmdSet" value="{fa5b1616-08ab-4d8d-a52b-15fd41c187fc}">
+      <IDSymbol name="ContextMenuGroup" value="0x1020" />
+      <IDSymbol name="ContextDoxygenId" value="0x0100" />
+    </GuidSymbol>
+  </Symbols>
+  
+</CommandTable>
