@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="ContextDoxygen.cs" />
     <Compile Include="ContextDoxygenPackage.cs" />
+    <Compile Include="Documenter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

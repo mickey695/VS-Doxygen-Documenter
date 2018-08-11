@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using EnvDTE;
 using EnvDTE80;
 using Task = System.Threading.Tasks.Task;
+using System.Diagnostics;//debug
 
 namespace DoxygenDocumenter
 {
@@ -28,7 +29,7 @@ namespace DoxygenDocumenter
 		/// VS Package that provides this command, not null.
 		/// </summary>
 		private readonly AsyncPackage package;
-		
+        
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ContextDoxygen"/> class.
 		/// Adds our command handlers for menu (commands must exist in the command table file)
@@ -79,106 +80,55 @@ namespace DoxygenDocumenter
 			Instance = new ContextDoxygen(package, commandService);
 		}
 
-		/// <summary>
-		/// This function is the callback used to execute the command when the menu item is clicked.
-		/// See the constructor to see how the menu item is associated with this function using
-		/// OleMenuCommandService service and MenuCommand class.
-		/// </summary>
-		/// <param name="sender">Event sender.</param>
-		/// <param name="e">Event args.</param>
-		private async void Execute(object sender, EventArgs e)
-		{
-			ThreadHelper.ThrowIfNotOnUIThread();
+        /// <summary>
+        /// This function is the callback used to execute the command when the menu item is clicked.
+        /// See the constructor to see how the menu item is associated with this function using
+        /// OleMenuCommandService service and MenuCommand class.
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
+        private async void Execute(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
 
-			DTE2 dte = (DTE2)await this.ServiceProvider.GetServiceAsync(typeof(DTE));
-			if (dte == null)
-			{
-				ErrorMessage("Failed to get DTE instance");
-				return;
-			}
+            DTE2 dte = (DTE2)await this.ServiceProvider.GetServiceAsync(typeof(DTE));
+            if (dte == null)
+            {
+                ErrorMessage("Failed to get DTE instance");
+                return;
+            }
 
-			TextDocument textDocument = (TextDocument)dte.ActiveDocument.Object("TextDocument");
-			if (textDocument == null)
-			{
-				ErrorMessage("Failed to get a text document instance");
-				return;
-			}
+            TextDocument textDocument = (TextDocument)dte.ActiveDocument.Object("TextDocument");
+            if (textDocument == null)
+            {
+                ErrorMessage("Failed to get a text document instance");
+                return;
+            }
 
-			CodeFunction function = (CodeFunction)textDocument.Selection.ActivePoint.CodeElement[vsCMElement.vsCMElementFunction];
-			if (function == null)
-			{
-				ErrorMessage("Documentation can only be created for functions. Not the global scope.");
-				return;
-			}
+            //fix so it will go to the symbol start and not use the current location 
+            CodeFunction function = (CodeFunction)textDocument.Selection.ActivePoint.CodeElement[vsCMElement.vsCMElementFunction];
+            Debug.WriteLine(function);
+            if (function == null)
+            {
+                ErrorMessage("Documentation can only be created for functions. Not the global scope.");
+                return;
+            }
 
-			generateDocumentation(textDocument, function);
-		}
+            Documenter documenter = new Documenter();
+            
+            documenter.generateDocumentation(textDocument, function);
 
-		void generateDocumentation(TextDocument textDocument, CodeFunction function)
-		{
-			EditPoint editPoint = function.StartPoint.CreateEditPoint();
+        }
 
-			string documentation = "";
-
-			documentation += documentationStart();
-			documentation += makeBrief();
-			documentation += makeParameters(function);
-			documentation += makeReturn(function);
-			documentation += documentationFinish();
-			
-			editPoint.Insert(documentation);	
-		}
-
-		#region Documentation Functions
-
-		private string documentationStart()
-		{
-			return "/**";
-		}
-
-		private string makeLine(int indentation = 2, int lines=1)
-		{
-			return String.Concat(Enumerable.Repeat(String.Format("\n{0}* ", new String(' ', indentation)), lines));
-		}
-
-		private string makeBrief()
-		{
-			return makeLine() + "@brief";
-		}
-
-		private string makeParameters(CodeFunction function)
-		{
-			string result = "";
-			foreach (CodeElement ce in function.Parameters)
-			{
-				result += makeLine(lines:2) + "@param " + ce.Name + " - ";
-			}
-			return result;
-		}
-
-		private string makeReturn(CodeFunction function)
-		{
-			string returnType = function.Prototype[(int)(vsCMPrototype.vsCMPrototypeType | vsCMPrototype.vsCMPrototypeNoName)].Split(' ')[0];
-
-			return returnType != "void" ? makeLine(lines:2) + "@return " : "";
-		}
-
-		private string documentationFinish()
-		{
-			return makeLine() + "**/\n";
-		}
-
-		#endregion
-
-		private void ErrorMessage(string message, string title="")
-		{
-			VsShellUtilities.ShowMessageBox(
-				this.package,
-				message,
-				title,
-				OLEMSGICON.OLEMSGICON_INFO,
-				OLEMSGBUTTON.OLEMSGBUTTON_OK,
-				OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-		}
-	}
+        private void ErrorMessage(string message, string title="")
+        {
+            VsShellUtilities.ShowMessageBox(
+                this.package,
+                message,
+                title,
+                OLEMSGICON.OLEMSGICON_INFO,
+                OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+        }
+    }
 }
